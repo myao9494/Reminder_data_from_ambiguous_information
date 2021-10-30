@@ -1,0 +1,2 @@
+# Reminder_data_from_ambiguous_information
+曖昧な情報でリマインド用のデータを作ります。日本語のみ対応です
