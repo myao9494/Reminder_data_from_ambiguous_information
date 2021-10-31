@@ -12,7 +12,7 @@ li_p_14 = [r"再来週.*[月火水木金土日]曜"]#+14日となる表現
 # li_p_next = [r"次の.*[月火水木金土日]曜",r"今度.*[月火水木金土日]曜"]
 li_p_7 = [r"来週.*[月火水木金土日]曜"]#+7日となる表現
 li_p_0 = [r"今週.*[月火水木金土日]曜"]#+0日となる表現
-li_today = [r"今日.*時"]#+0日となる表現(曜日指定なし)
+li_today = [r"今日.*"]#+0日となる表現(曜日指定なし)
 # li_tommorow = [r"明日.*時"]#+1日となる表現(曜日指定なし)
 # li_da_tommorow = [r"明後日.*時"]#+2日となる表現(曜日指定なし)
 li_tommorow = [r"明日.*"]#+1日となる表現(曜日指定なし)
@@ -26,7 +26,8 @@ li_tokushu_ji = {"正午":"12時"}#特殊な場合
 y_p =  r'([12]\d{3})[/\-年.]'#年を引っ掛ける
 # y_wa_p = r'(明治|大正|昭和|平成|令和)\d{1,2}年'
 m_p = r'(0?[1-9]|1[0-2])[/\-月.]'#月を引っ掛ける
-d_p =  r'([12][0-9]|3[01]|0?[1-9])'#日を引っ掛ける
+# d_p =  r'([12][0-9]|3[01]|0?[1-9])'#日を引っ掛ける
+d_p =  r'([12][0-9]日?|3[01]日?|0?[1-9]日?)'#日を引っ掛ける
 # h_p =  r'((0?|1)[0-9]|2[0-3])[:時]'
 h_p =  r'(0?|[0-9]|1[0-9]|2[0-9])[:時]'#時間を引っ掛ける
 min_p =  r'([0-5][0-9]|0?[0-9])'#分を引っ掛ける
@@ -41,7 +42,7 @@ def main(string,kiten_datetime):
     string = date_trans(string,kiten_datetime)#月と日の処理
     string = time_shori(string)#時間の処理
     print(string)
-    datetime = _re_search(y_p+m_p+d_p+".*"+h_p+min_p,string)
+    datetime = _re_search(y_p+m_p+d_p+r".*"+h_p+min_p,string)
     if datetime:
         datetime_st = datetime.group().replace(" ","")
         datetime_st = datetime_st.replace("　","")
@@ -102,10 +103,12 @@ def year_shori(string,kiten_datetime):
     if not result:
         if _re_search(m_p,string):
             string = str(kiten_datetime.year)+"年"+string
-            datetime_st = _re_search(y_p+m_p,string).group().replace(" ","")
+            datetime_st = _re_search(y_p+m_p+d_p,string).group().replace(" ","")
             y,datetime_st = _toridasi(datetime_st,y_p)
             M,datetime_st = _toridasi(datetime_st,m_p)
-            delta = (pendulum.datetime(int(y), int(M), 1, 0, 0, 0) - kiten_datetime).days
+            D,datetime_st = _toridasi(datetime_st,d_p)
+            delta = (pendulum.datetime(int(y), int(M), int(D), 0, 0, 0) - kiten_datetime).days
+            
             if delta < 0:
                 print("来年の話ですね！")
                 string = string.replace(str(kiten_datetime.year)+"年",str(kiten_datetime.year+1)+"年")
@@ -211,7 +214,8 @@ def time_shori(string):
     if not _re_search(h_p+min_p,string):#時間が入ってない場合は、7：00にセット
         result = _re_search(y_p+m_p+d_p,string)
         if result:
-            string = string.replace(result.group(),result.group()+"日 7時0分")
+            # string = string.replace(result.group(),result.group()+"日 7時0分")
+            string = string.replace(result.group(),result.group()+" 7時0分")
     
     return string
 
@@ -321,4 +325,7 @@ def _nan_shu(pendulum_datetime):
 
 def _toridasi(datetime_st,seiki):
     result = _re_search(seiki,datetime_st)
-    return re.findall(seiki,datetime_st)[0],datetime_st[result.end():]
+    return _suji_nomi(re.findall(seiki,datetime_st)[0]),datetime_st[result.end():]
+
+def _suji_nomi(string):
+     return re.sub(r"\D", "", string)
