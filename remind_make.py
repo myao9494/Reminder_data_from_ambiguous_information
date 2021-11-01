@@ -11,7 +11,7 @@ hosei_year = r"(.[0-9])年"#2桁で表示する場合に引っ掛ける
 li_p_14 = [r"再来週.*[月火水木金土日]曜"]#+14日となる表現
 # li_p_next = [r"次の.*[月火水木金土日]曜",r"今度.*[月火水木金土日]曜"]
 li_p_7 = [r"来週.*[月火水木金土日]曜"]#+7日となる表現
-li_p_0 = [r"今週.*[月火水木金土日]曜"]#+0日となる表現
+li_p_0 = [r"今週.*[月火水木金土日]曜",r"次.*[月火水木金土日]曜"]#+0日となる表現
 li_today = [r"今日.*"]#+0日となる表現(曜日指定なし)
 # li_tommorow = [r"明日.*時"]#+1日となる表現(曜日指定なし)
 # li_da_tommorow = [r"明後日.*時"]#+2日となる表現(曜日指定なし)
@@ -314,16 +314,28 @@ def _trans_yobi_to_date(a,n,kiten_datetime,next_week_opp=True,konsh_opp=False):
                     
     return tg.add(days=n).strftime('%m月%d')
 
-def _nan_shu(pendulum_datetime):
-    """何週目であるかを計算して返してくれます
+def _nan_shu(target_date):    
+    """  
+    指定された日付からその月の「第N週」かを取得する
+      Arguments:
+          target_date {datetime} -- 第N週を取得する対象の日付情報
 
-    Args:
-        pendulum_datetime (datetime)): 何週目かを調べた日時
-
-    Returns:
-        int: 週目
+      Returns:
+          int -- 第N週の`N`
+    https://qiita.com/ksh-fthr/items/e07952619cc265dd5c32
     """
-    return calendar.weekday(pendulum_datetime.year, pendulum_datetime.month, pendulum_datetime.day)
+    # カレンダーを日曜日始まりで作成する( firstweekday=6 は日曜日始まりを指定 )
+    cl = calendar.Calendar(firstweekday=6)
+
+    # ここからが実際に第N週かを取得する処理
+    month_cl = cl.monthdays2calendar(target_date.year, target_date.month)
+    week_num = 1
+    for week in month_cl:
+        for day in week:
+            if day[0] == target_date.day:
+                return week_num
+        week_num += 1
+    return week_num
 
 def _toridasi(datetime_st,seiki):
     result = _re_search(seiki,datetime_st)
