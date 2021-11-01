@@ -214,8 +214,10 @@ def time_shori(string):
     if not _re_search(h_p+min_p,string):#時間が入ってない場合は、7：00にセット
         result = _re_search(y_p+m_p+d_p,string)
         if result:
-            # string = string.replace(result.group(),result.group()+"日 7時0分")
-            string = string.replace(result.group(),result.group()+" 7時0分")
+            if string.find("/"):
+                string = string.replace(result.group(),result.group()+"日 7時0分")
+            else:
+                string = string.replace(result.group(),result.group()+" 7時0分")
     
     return string
 
