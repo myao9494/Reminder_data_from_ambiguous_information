@@ -33,7 +33,7 @@ h_p =  r'(0?|[0-9]|1[0-9]|2[0-9])[:時]'#時間を引っ掛ける
 min_p =  r'([0-5][0-9]|0?[0-9])'#分を引っ掛ける
 
 #予定の前にある削除すべき助詞(だけじゃなかった)リスト
-jyoshi_li = [r".*から",r".*に",r".*　",r".* ",r".*分",r".*は"]
+jyoshi_li = [r"^から",r"^に",r"^分",r"^は"]
 
 def main(string,kiten_datetime):
     string = string.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))#半角に変換
@@ -53,6 +53,8 @@ def main(string,kiten_datetime):
         mi,datetime_st = _toridasi(datetime_st,min_p)
 
         naiyo = string[datetime.end():]
+        naiyo = naiyo.replace(" ","")
+        naiyo = naiyo.replace("　","")
         for i in jyoshi_li:
             result = _re_search(i,naiyo)
             if result:
