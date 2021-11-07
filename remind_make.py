@@ -3,6 +3,7 @@ import pendulum
 import calendar
 
 #年に関して処理すべきリスト
+nitigo = r"([0-9]{1,3})日後(.*)"
 li_p_1_y = [r"(.*)来年(.*月)"]#+1年になる表現
 li_p_2_y = [r"(.*)再来年(.*月)"]#+2年になる表現
 hosei_year = r"(.[0-9])年"#2桁で表示する場合に引っ掛ける
@@ -32,8 +33,8 @@ d_p =  r'([12][0-9]日?|3[01]日?|0?[1-9]日?)'#日を引っ掛ける
 h_p =  r'(0?|[0-9]|1[0-9]|2[0-9])[:時]'#時間を引っ掛ける
 min_p =  r'([0-5][0-9]|0?[0-9])'#分を引っ掛ける
 
-#予定の前にある削除すべき助詞(だけじゃなかった)リスト
-jyoshi_li = [r"^から",r"^に",r"^分",r"^は"]
+#予定の前にある削除すべき助詞リスト
+jyoshi_li = [r"^から",r"^に",r"^は"]
 
 def main(string,kiten_datetime):
     string = string.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))#半角に変換
@@ -55,9 +56,13 @@ def main(string,kiten_datetime):
         naiyo = string[datetime.end():]
         naiyo = naiyo.replace(" ","")
         naiyo = naiyo.replace("　","")
+        result = _re_search(r"^分",naiyo)
+        if result:
+            naiyo = naiyo[result.end():]
         for i in jyoshi_li:
             result = _re_search(i,naiyo)
             if result:
+                print(naiyo)
                 naiyo = naiyo[result.end():]
             else:
                 naiyo = naiyo
@@ -78,6 +83,13 @@ def year_shori(string,kiten_datetime):
     Returns:
         str: 年に関して曖昧な表現を含まない文字列
     """
+    #x日後を表す表現の処理
+    if _re_search(nitigo,string):
+        days =  re.sub(nitigo,r"\1",string)
+        naiyo =  re.sub(nitigo,r"\2",string)
+        tg = kiten_datetime.add(days=int(days)).strftime('%Y年%m月%d')
+        print(tg)
+        string = re.sub(nitigo,tg,string) + naiyo
     #2年後を表す表現の処理
     for i in  li_p_2_y:#再来年は今の年+2年
         if _re_search(i,string):
