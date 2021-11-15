@@ -4,7 +4,7 @@ import calendar
 
 #年に関して処理すべきリスト
 nitigo = r"([0-9]{1,3})日後(.*)"
-li_p_1_y = [r"(.*)来年(.*月)",r"(.*)来年の(.*)"]#+1年になる表現
+li_p_1_y = [r"(.*)来年の(.*)",r"(.*)来年(.*月)"]#+1年になる表現
 li_p_2_y = [r"(.*)再来年(.*月)"]#+2年になる表現
 hosei_year = r"(.[0-9])年"#2桁で表示する場合に引っ掛ける
 
@@ -59,19 +59,23 @@ def main(string,kiten_datetime):
         result = _re_search(r"^分",naiyo)
         if result:
             naiyo = naiyo[result.end():]
-        for i in jyoshi_li:
-            result = _re_search(i,naiyo)
-            if result:
-                print(naiyo)
-                naiyo = naiyo[result.end():]
-            else:
-                naiyo = naiyo
+        naiyo = _delete_jyosi(naiyo)
+
         out = y,M,d,h,mi,naiyo
     else:
         print("失敗")
         out = False,string,datetime
     return out
 
+def _delete_jyosi(naiyo):
+    for i in jyoshi_li:
+        result = _re_search(i,naiyo)
+        if result:
+            print(naiyo)
+            naiyo = naiyo[result.end():]
+        else:
+            naiyo = naiyo
+    return naiyo
 
 def year_shori(string,kiten_datetime):
     """年の曖昧な表現を明確にする関数(来年とか再来年とか、年が入ってないとか)
