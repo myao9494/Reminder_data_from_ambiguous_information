@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 temp_hiduke.ipynb
+.DS_Store
